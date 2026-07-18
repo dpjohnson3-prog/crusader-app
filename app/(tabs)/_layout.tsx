@@ -94,6 +94,23 @@ export default function TabLayout() {
           ),
         }}
       />
+      <Tabs.Screen
+        name="armory"
+        options={{
+          title: 'The Armory',
+          tabBarIcon: ({ color }) => (
+            <SymbolView
+              name={{
+                ios: 'shield.fill',
+                android: 'shield',
+                web: 'shield',
+              }}
+              tintColor={color}
+              size={28}
+            />
+          ),
+        }}
+      />
     </Tabs>
   );
 }
