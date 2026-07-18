@@ -1,13 +1,11 @@
 import { SymbolView } from 'expo-symbols';
 import { Redirect, Tabs } from 'expo-router';
 
-import Colors from '@/constants/Colors';
-import { useColorScheme } from '@/components/useColorScheme';
 import { useClientOnlyValue } from '@/components/useClientOnlyValue';
 import { useAuth } from '@/context/Auth';
+import { Colors, OrbitronFonts } from '@/constants/theme';
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
   const { user } = useAuth();
 
   if (!user) {
@@ -17,7 +15,13 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme].tint,
+        tabBarActiveTintColor: Colors.cyan,
+        tabBarInactiveTintColor: Colors.inkDim,
+        tabBarStyle: { backgroundColor: Colors.panel, borderTopColor: Colors.border },
+        tabBarLabelStyle: { fontFamily: OrbitronFonts.medium, fontSize: 10 },
+        headerStyle: { backgroundColor: Colors.panel },
+        headerTintColor: Colors.ink,
+        headerTitleStyle: { fontFamily: OrbitronFonts.semiBold, fontSize: 15 },
         // Disable the static render of the header on web
         // to prevent a hydration error in React Navigation v6.
         headerShown: useClientOnlyValue(false, true),

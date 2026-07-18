@@ -1,15 +1,17 @@
 import { useMemo, useState } from 'react';
-import { Pressable, StyleSheet } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { Text, View } from '@/components/Themed';
+import { HudPanel } from '@/components/HudPanel';
+import { StatProgressBar } from '@/components/StatProgressBar';
 import { CATEGORY_COLORS, CATEGORY_LABELS } from '@/constants/categories';
+import { Colors, InterFonts, OrbitronFonts, PlexMonoFonts } from '@/constants/theme';
 import { useGameState } from '@/context/GameState';
 import { currentRank, levelFromXp, totalLevel, xpIntoLevel, XP_PER_LEVEL, type StatCategory } from '@/lib/stats';
 import { DISCIPLINES, TOTAL_DISCIPLINES, disciplinesByCategory } from '@/lib/disciplines';
 
 export default function TheChargeScreen() {
   const [activeCategory, setActiveCategory] = useState<StatCategory>('body');
-  const { xp, doneIds, toggleDiscipline } = useGameState();
+  const { xp, doneIds, toggleDiscipline, levelUpEvent } = useGameState();
 
   const overallLevel = totalLevel(xp);
   const rank = currentRank(overallLevel);
@@ -21,11 +23,12 @@ export default function TheChargeScreen() {
   const activeLevel = levelFromXp(xp[activeCategory]);
   const activeXpIntoLevel = xpIntoLevel(xp[activeCategory]);
   const activeColor = CATEGORY_COLORS[activeCategory];
+  const activeLevelUpToken = levelUpEvent?.category === activeCategory ? levelUpEvent.token : null;
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>The Charge</Text>
+        <Text style={styles.title}>THE CHARGE</Text>
         <Text style={styles.subtitle}>
           {rank} · Level {overallLevel} · {completedCount} of {TOTAL_DISCIPLINES} disciplines done today
         </Text>
@@ -52,18 +55,15 @@ export default function TheChargeScreen() {
 
       <View style={styles.statSummary}>
         <Text style={[styles.statSummaryLevel, { color: activeColor }]}>
-          {CATEGORY_LABELS[activeCategory]} · Level {activeLevel}
+          {CATEGORY_LABELS[activeCategory].toUpperCase()} · LEVEL {activeLevel}
         </Text>
-        <View style={styles.progressTrack}>
-          <View
-            style={[
-              styles.progressFill,
-              { width: `${(activeXpIntoLevel / XP_PER_LEVEL) * 100}%`, backgroundColor: activeColor },
-            ]}
-          />
-        </View>
+        <StatProgressBar
+          color={activeColor}
+          progress={activeXpIntoLevel / XP_PER_LEVEL}
+          levelUpToken={activeLevelUpToken}
+        />
         <Text style={styles.statSummarySub}>
-          {activeXpIntoLevel} / {XP_PER_LEVEL} xp to next level
+          {activeXpIntoLevel} / {XP_PER_LEVEL} XP TO NEXT LEVEL
         </Text>
       </View>
 
@@ -71,21 +71,23 @@ export default function TheChargeScreen() {
         {disciplinesByCategory(activeCategory).map((discipline) => {
           const done = !!doneIds[discipline.id];
           return (
-            <Pressable
-              key={discipline.id}
-              onPress={() => toggleDiscipline(discipline)}
-              style={[
-                styles.row,
-                done && { borderColor: activeColor, backgroundColor: `${activeColor}22` },
-              ]}>
-              <View style={[styles.checkbox, done && { backgroundColor: activeColor, borderColor: activeColor }]}>
-                {done && <Text style={styles.checkmark}>✓</Text>}
-              </View>
-              <View style={styles.rowText}>
-                <Text style={styles.rowName}>{discipline.name}</Text>
-                {discipline.subtitle && <Text style={styles.rowSub}>{discipline.subtitle}</Text>}
-              </View>
-              <Text style={styles.rowPoints}>+{discipline.points}</Text>
+            <Pressable key={discipline.id} onPress={() => toggleDiscipline(discipline)}>
+              <HudPanel
+                notchSize={10}
+                backgroundColor={done ? `${activeColor}22` : Colors.panel}
+                borderColor={done ? activeColor : Colors.border}
+                glow={done}
+                glowColor={activeColor}
+                style={styles.row}>
+                <View style={[styles.checkbox, done && { backgroundColor: activeColor, borderColor: activeColor }]}>
+                  {done && <Text style={styles.checkmark}>✓</Text>}
+                </View>
+                <View style={styles.rowText}>
+                  <Text style={styles.rowName}>{discipline.name}</Text>
+                  {discipline.subtitle && <Text style={styles.rowSub}>{discipline.subtitle}</Text>}
+                </View>
+                <Text style={[styles.rowPoints, { color: activeColor }]}>+{discipline.points}</Text>
+              </HudPanel>
             </Pressable>
           );
         })}
@@ -99,22 +101,28 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingTop: 60,
     paddingHorizontal: 20,
+    backgroundColor: Colors.bg,
   },
   header: {
     marginBottom: 16,
   },
   title: {
-    fontSize: 26,
-    fontWeight: 'bold',
+    fontFamily: OrbitronFonts.bold,
+    fontSize: 22,
+    letterSpacing: 2,
+    color: Colors.ink,
   },
   subtitle: {
+    fontFamily: InterFonts.regular,
     fontSize: 13,
-    opacity: 0.7,
+    color: Colors.inkSoft,
     marginTop: 4,
   },
   categoryTabs: {
     flexDirection: 'row',
     marginBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
   },
   categoryTab: {
     paddingVertical: 8,
@@ -122,32 +130,23 @@ const styles = StyleSheet.create({
     marginRight: 24,
   },
   categoryTabText: {
-    fontSize: 15,
-    fontWeight: '600',
-    opacity: 0.6,
+    fontFamily: OrbitronFonts.medium,
+    fontSize: 13,
+    color: Colors.inkDim,
   },
   statSummary: {
     marginBottom: 18,
   },
   statSummaryLevel: {
-    fontSize: 14,
-    fontWeight: '700',
-    marginBottom: 6,
-  },
-  progressTrack: {
-    height: 8,
-    borderRadius: 6,
-    backgroundColor: 'rgba(128,128,128,0.25)',
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
-    borderRadius: 6,
+    fontFamily: PlexMonoFonts.semiBold,
+    fontSize: 13,
+    marginBottom: 8,
   },
   statSummarySub: {
+    fontFamily: PlexMonoFonts.medium,
     fontSize: 11,
-    opacity: 0.6,
-    marginTop: 4,
+    color: Colors.inkDim,
+    marginTop: 6,
   },
   list: {
     gap: 8,
@@ -158,9 +157,6 @@ const styles = StyleSheet.create({
     gap: 12,
     paddingVertical: 12,
     paddingHorizontal: 14,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: 'rgba(128,128,128,0.3)',
     marginBottom: 8,
   },
   checkbox: {
@@ -168,13 +164,13 @@ const styles = StyleSheet.create({
     height: 22,
     borderRadius: 11,
     borderWidth: 2,
-    borderColor: 'rgba(128,128,128,0.6)',
+    borderColor: Colors.inkDim,
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
   },
   checkmark: {
-    color: '#fff',
+    color: Colors.bg,
     fontSize: 13,
     fontWeight: 'bold',
   },
@@ -182,17 +178,18 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   rowName: {
+    fontFamily: InterFonts.semiBold,
     fontSize: 14,
-    fontWeight: '600',
+    color: Colors.ink,
   },
   rowSub: {
+    fontFamily: InterFonts.regular,
     fontSize: 12,
-    opacity: 0.6,
+    color: Colors.inkSoft,
     marginTop: 2,
   },
   rowPoints: {
+    fontFamily: PlexMonoFonts.medium,
     fontSize: 12,
-    opacity: 0.6,
-    fontVariant: ['tabular-nums'],
   },
 });

@@ -1,6 +1,7 @@
-import { ScrollView, StyleSheet } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { Text, View } from '@/components/Themed';
+import { HudPanel } from '@/components/HudPanel';
+import { Colors, InterFonts, OrbitronFonts, PlexMonoFonts } from '@/constants/theme';
 import { useGameState } from '@/context/GameState';
 import { currentRank, RANK_LADDER, totalLevel } from '@/lib/stats';
 
@@ -11,37 +12,38 @@ export default function OrderScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.title}>The Order</Text>
+      <Text style={styles.title}>THE ORDER</Text>
       <Text style={styles.subtitle}>
         Your overall level is Body + Mind + Spirit levels combined. You are Level {overallLevel} — {rank}.
       </Text>
 
-      <View style={styles.ladder}>
-        {RANK_LADDER.map((rung) => {
+      <HudPanel style={styles.ladder}>
+        {RANK_LADDER.map((rung, index) => {
           const reached = overallLevel >= rung.level;
           const isCurrent = reached && rung.title === rank;
-          const status = isCurrent ? 'current' : reached ? 'reached' : 'locked';
+          const isLast = index === RANK_LADDER.length - 1;
           return (
             <View
               key={rung.title}
               style={[
                 styles.rung,
-                status === 'current' && styles.rungCurrent,
-                status === 'locked' && styles.rungLocked,
+                !isLast && styles.rungDivider,
+                isCurrent && styles.rungCurrent,
+                !reached && styles.rungLocked,
               ]}>
               <Text
                 style={[
                   styles.rungTitle,
-                  status === 'current' && styles.rungTitleCurrent,
-                  status === 'locked' && styles.rungTitleLocked,
+                  isCurrent && styles.rungTitleCurrent,
+                  !reached && styles.rungTitleLocked,
                 ]}>
                 {rung.title}
               </Text>
-              <Text style={styles.rungLevel}>Level {rung.level}</Text>
+              <Text style={styles.rungLevel}>LEVEL {rung.level}</Text>
             </View>
           );
         })}
-      </View>
+      </HudPanel>
     </ScrollView>
   );
 }
@@ -49,6 +51,7 @@ export default function OrderScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: Colors.bg,
   },
   content: {
     paddingTop: 60,
@@ -56,27 +59,32 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   title: {
-    fontSize: 26,
-    fontWeight: 'bold',
+    fontFamily: OrbitronFonts.bold,
+    fontSize: 22,
+    letterSpacing: 2,
+    color: Colors.ink,
     marginBottom: 8,
   },
   subtitle: {
+    fontFamily: InterFonts.regular,
     fontSize: 13,
-    opacity: 0.7,
     lineHeight: 19,
+    color: Colors.inkSoft,
     marginBottom: 20,
   },
   ladder: {
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(128,128,128,0.2)',
+    paddingHorizontal: 4,
   },
   rung: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingVertical: 14,
+    paddingHorizontal: 12,
+  },
+  rungDivider: {
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(128,128,128,0.2)',
+    borderBottomColor: Colors.border,
   },
   rungCurrent: {
     backgroundColor: 'rgba(232,194,92,0.12)',
@@ -85,18 +93,23 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   rungTitle: {
-    fontSize: 15,
-    fontWeight: '600',
+    fontFamily: OrbitronFonts.medium,
+    fontSize: 14,
+    color: Colors.ink,
   },
   rungTitleCurrent: {
-    color: '#C9A227',
-    fontWeight: '700',
+    fontFamily: OrbitronFonts.semiBold,
+    color: Colors.gold,
+    textShadowColor: Colors.gold,
+    textShadowRadius: 8,
+    textShadowOffset: { width: 0, height: 0 },
   },
   rungTitleLocked: {
-    fontWeight: '400',
+    color: Colors.inkDim,
   },
   rungLevel: {
-    fontSize: 12,
-    opacity: 0.6,
+    fontFamily: PlexMonoFonts.medium,
+    fontSize: 11,
+    color: Colors.inkDim,
   },
 });

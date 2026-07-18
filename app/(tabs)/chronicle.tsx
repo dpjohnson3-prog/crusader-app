@@ -1,7 +1,10 @@
 import { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, TextInput } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { Text, useThemeColor, View } from '@/components/Themed';
+import { HudButton } from '@/components/HudButton';
+import { HudPanel } from '@/components/HudPanel';
+import { HudTextInput } from '@/components/HudTextInput';
+import { Colors, FrauncesFonts, InterFonts, OrbitronFonts, PlexMonoFonts } from '@/constants/theme';
 import { useGameState } from '@/context/GameState';
 import { todaysReflectionPrompt } from '@/lib/reflectionPrompts';
 
@@ -9,7 +12,6 @@ export default function ChronicleScreen() {
   const { journalEntries, addJournalEntry } = useGameState();
   const [draft, setDraft] = useState('');
   const prompt = todaysReflectionPrompt();
-  const textColor = useThemeColor({}, 'text');
 
   const handleSave = () => {
     if (!draft.trim()) return;
@@ -19,28 +21,22 @@ export default function ChronicleScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.title}>Chronicle</Text>
+      <Text style={styles.title}>CHRONICLE</Text>
 
-      <View style={styles.promptCard}>
+      <HudPanel style={styles.promptCard}>
         <Text style={styles.promptText}>{prompt}</Text>
-      </View>
+      </HudPanel>
 
-      <TextInput
+      <HudTextInput
         value={draft}
         onChangeText={setDraft}
         placeholder="Write a few honest sentences..."
-        placeholderTextColor="rgba(128,128,128,0.7)"
         multiline
-        style={[styles.input, { color: textColor }]}
+        style={styles.input}
       />
-      <Pressable
-        onPress={handleSave}
-        disabled={!draft.trim()}
-        style={[styles.saveButton, !draft.trim() && styles.saveButtonDisabled]}>
-        <Text style={styles.saveButtonText}>Save entry</Text>
-      </Pressable>
+      <HudButton title="Save entry" onPress={handleSave} disabled={!draft.trim()} style={styles.saveButton} />
 
-      <Text style={styles.sectionLabel}>Past entries</Text>
+      <Text style={styles.sectionLabel}>PAST ENTRIES</Text>
       {journalEntries.length === 0 ? (
         <Text style={styles.emptyText}>No entries yet.</Text>
       ) : (
@@ -58,6 +54,7 @@ export default function ChronicleScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: Colors.bg,
   },
   content: {
     paddingTop: 60,
@@ -65,72 +62,58 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   title: {
-    fontSize: 26,
-    fontWeight: 'bold',
+    fontFamily: OrbitronFonts.bold,
+    fontSize: 22,
+    letterSpacing: 2,
+    color: Colors.ink,
     marginBottom: 16,
   },
   promptCard: {
-    borderWidth: 1,
-    borderColor: 'rgba(128,128,128,0.3)',
-    borderRadius: 12,
     padding: 16,
     marginBottom: 14,
   },
   promptText: {
+    fontFamily: FrauncesFonts.mediumItalic,
     fontSize: 16,
-    fontStyle: 'italic',
-    lineHeight: 22,
+    lineHeight: 23,
+    color: Colors.gold,
   },
   input: {
-    borderWidth: 1,
-    borderColor: 'rgba(128,128,128,0.3)',
-    borderRadius: 10,
-    padding: 12,
     minHeight: 100,
-    fontSize: 14,
     textAlignVertical: 'top',
   },
   saveButton: {
     alignSelf: 'flex-start',
-    backgroundColor: '#2E3440',
-    borderRadius: 8,
-    paddingVertical: 10,
-    paddingHorizontal: 18,
-    marginTop: 10,
-  },
-  saveButtonDisabled: {
-    opacity: 0.4,
-  },
-  saveButtonText: {
-    color: '#fff',
-    fontSize: 13,
-    fontWeight: '600',
+    marginBottom: 8,
   },
   sectionLabel: {
+    fontFamily: PlexMonoFonts.semiBold,
     fontSize: 12,
-    fontWeight: '600',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    opacity: 0.6,
+    letterSpacing: 1,
+    color: Colors.inkDim,
     marginTop: 28,
     marginBottom: 10,
   },
   emptyText: {
+    fontFamily: InterFonts.regular,
     fontSize: 13,
-    opacity: 0.6,
+    color: Colors.inkSoft,
   },
   entry: {
     paddingVertical: 12,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(128,128,128,0.2)',
+    borderTopColor: Colors.border,
   },
   entryDate: {
+    fontFamily: PlexMonoFonts.medium,
     fontSize: 11,
-    opacity: 0.6,
+    color: Colors.inkDim,
     marginBottom: 4,
   },
   entryText: {
+    fontFamily: InterFonts.regular,
     fontSize: 13,
     lineHeight: 19,
+    color: Colors.ink,
   },
 });

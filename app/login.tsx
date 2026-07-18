@@ -2,10 +2,13 @@ import * as Google from 'expo-auth-session/providers/google';
 import { Redirect } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, TextInput } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { Text, useThemeColor, View } from '@/components/Themed';
+import { HudButton } from '@/components/HudButton';
+import { HudPanel } from '@/components/HudPanel';
+import { HudTextInput } from '@/components/HudTextInput';
 import { useAuth } from '@/context/Auth';
+import { Colors, InterFonts, OrbitronFonts } from '@/constants/theme';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -23,7 +26,6 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const textColor = useThemeColor({}, 'text');
 
   const [googleRequest, googleResponse, promptGoogleSignIn] = Google.useIdTokenAuthRequest({
     webClientId: googleWebClientIdOrPlaceholder,
@@ -65,63 +67,54 @@ export default function LoginScreen() {
   if (!isFirebaseConfigured) {
     return (
       <View style={styles.container}>
-        <Text style={styles.title}>Crusader</Text>
-        <View style={styles.notConfiguredCard}>
+        <Text style={styles.title}>CRUSADER</Text>
+        <HudPanel style={styles.notConfiguredCard}>
           <Text style={styles.notConfiguredTitle}>Firebase isn't configured yet</Text>
           <Text style={styles.notConfiguredText}>
             Add your Firebase project's config to a .env file at the project root (see .env.example for the
             required keys) and restart the app to enable sign-in.
           </Text>
-        </View>
+        </HudPanel>
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Crusader</Text>
+      <Text style={styles.title}>CRUSADER</Text>
       <Text style={styles.subtitle}>{mode === 'signIn' ? 'Sign in to continue' : 'Create your account'}</Text>
 
       {error && <Text style={styles.error}>{error}</Text>}
 
-      <TextInput
+      <HudTextInput
         value={email}
         onChangeText={setEmail}
         placeholder="Email"
-        placeholderTextColor="rgba(128,128,128,0.7)"
         autoCapitalize="none"
         keyboardType="email-address"
-        style={[styles.input, { color: textColor }]}
+        style={styles.inputSpacing}
       />
-      <TextInput
+      <HudTextInput
         value={password}
         onChangeText={setPassword}
         placeholder="Password"
-        placeholderTextColor="rgba(128,128,128,0.7)"
         secureTextEntry
-        style={[styles.input, { color: textColor }]}
+        style={styles.inputSpacing}
       />
 
-      <Pressable
+      <HudButton
+        title={mode === 'signIn' ? 'Sign in' : 'Sign up'}
         onPress={handleSubmit}
-        disabled={submitting || !email || !password}
-        style={[styles.primaryButton, (submitting || !email || !password) && styles.buttonDisabled]}>
-        {submitting ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text style={styles.primaryButtonText}>{mode === 'signIn' ? 'Sign in' : 'Sign up'}</Text>
-        )}
-      </Pressable>
+        disabled={!email || !password}
+        loading={submitting}
+      />
 
-      <Pressable
+      <HudButton
+        title="Continue with Google"
         onPress={() => promptGoogleSignIn()}
         disabled={!googleRequest || !googleWebClientId || submitting}
-        style={[
-          styles.googleButton,
-          (!googleRequest || !googleWebClientId || submitting) && styles.buttonDisabled,
-        ]}>
-        <Text style={styles.googleButtonText}>Continue with Google</Text>
-      </Pressable>
+        variant="secondary"
+      />
       {!googleWebClientId && (
         <Text style={styles.googleHint}>Set EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID to enable Google sign-in.</Text>
       )}
@@ -140,88 +133,65 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     paddingHorizontal: 24,
+    backgroundColor: Colors.bg,
   },
   title: {
-    fontSize: 30,
-    fontWeight: 'bold',
+    fontFamily: OrbitronFonts.bold,
+    fontSize: 28,
+    letterSpacing: 4,
     textAlign: 'center',
     marginBottom: 6,
+    color: Colors.gold,
+    textShadowColor: Colors.gold,
+    textShadowRadius: 16,
+    textShadowOffset: { width: 0, height: 0 },
   },
   subtitle: {
+    fontFamily: InterFonts.regular,
     fontSize: 14,
-    opacity: 0.7,
     textAlign: 'center',
     marginBottom: 24,
+    color: Colors.inkSoft,
   },
   error: {
-    color: '#D14343',
+    fontFamily: InterFonts.medium,
+    color: Colors.danger,
     fontSize: 13,
     textAlign: 'center',
     marginBottom: 12,
   },
-  input: {
-    borderWidth: 1,
-    borderColor: 'rgba(128,128,128,0.3)',
-    borderRadius: 10,
-    padding: 12,
-    fontSize: 14,
+  inputSpacing: {
     marginBottom: 12,
   },
-  primaryButton: {
-    backgroundColor: '#2E3440',
-    borderRadius: 10,
-    paddingVertical: 13,
-    alignItems: 'center',
-    marginTop: 6,
-  },
-  primaryButtonText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  googleButton: {
-    borderWidth: 1,
-    borderColor: 'rgba(128,128,128,0.4)',
-    borderRadius: 10,
-    paddingVertical: 13,
-    alignItems: 'center',
-    marginTop: 12,
-  },
-  googleButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
   googleHint: {
+    fontFamily: InterFonts.regular,
     fontSize: 11,
-    opacity: 0.5,
+    color: Colors.inkDim,
     textAlign: 'center',
     marginTop: 6,
-  },
-  buttonDisabled: {
-    opacity: 0.4,
   },
   switchModeButton: {
     marginTop: 20,
     alignItems: 'center',
   },
   switchModeText: {
+    fontFamily: InterFonts.regular,
     fontSize: 13,
-    opacity: 0.7,
+    color: Colors.inkSoft,
   },
   notConfiguredCard: {
-    borderWidth: 1,
-    borderColor: 'rgba(128,128,128,0.3)',
-    borderRadius: 12,
     padding: 18,
   },
   notConfiguredTitle: {
-    fontSize: 15,
-    fontWeight: '700',
+    fontFamily: OrbitronFonts.medium,
+    fontSize: 14,
     marginBottom: 8,
+    color: Colors.ink,
   },
   notConfiguredText: {
+    fontFamily: InterFonts.regular,
     fontSize: 13,
-    opacity: 0.7,
     lineHeight: 19,
+    color: Colors.inkSoft,
   },
 });

@@ -9,17 +9,28 @@ import {
   setDoc,
   Timestamp,
 } from 'firebase/firestore';
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import * as Haptics from 'expo-haptics';
+import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 
 import { useAuth } from '@/context/Auth';
 import type { Discipline } from '@/lib/disciplines';
 import { db } from '@/lib/firebase';
-import { addXp, createInitialXp, type StatXp } from '@/lib/stats';
+import { addXp, createInitialXp, currentRank, levelFromXp, totalLevel, type StatCategory, type StatXp } from '@/lib/stats';
 
 export interface JournalEntry {
   id: string;
   date: string;
   text: string;
+}
+
+export interface LevelUpEvent {
+  category: StatCategory;
+  token: number;
+}
+
+export interface RankUpEvent {
+  rank: string;
+  token: number;
 }
 
 interface GameStateValue {
@@ -28,6 +39,8 @@ interface GameStateValue {
   toggleDiscipline: (discipline: Discipline) => void;
   journalEntries: JournalEntry[];
   addJournalEntry: (text: string) => void;
+  levelUpEvent: LevelUpEvent | null;
+  rankUpEvent: RankUpEvent | null;
 }
 
 const GameStateContext = createContext<GameStateValue | undefined>(undefined);
@@ -52,6 +65,9 @@ export function GameStateProvider({ children }: { children: ReactNode }) {
   const [xp, setXp] = useState<StatXp>(createInitialXp());
   const [doneIds, setDoneIds] = useState<Record<string, boolean>>({});
   const [journalEntries, setJournalEntries] = useState<JournalEntry[]>([]);
+  const [levelUpEvent, setLevelUpEvent] = useState<LevelUpEvent | null>(null);
+  const [rankUpEvent, setRankUpEvent] = useState<RankUpEvent | null>(null);
+  const eventTokenRef = useRef(0);
 
   useEffect(() => {
     if (!uid || !db) {
@@ -87,10 +103,30 @@ export function GameStateProvider({ children }: { children: ReactNode }) {
   const toggleDiscipline = (discipline: Discipline) => {
     if (!uid || !db) return;
     const isDone = !!doneIds[discipline.id];
+    const nowDone = !isDone;
     const delta = isDone ? -discipline.points : discipline.points;
     const nextXp = addXp(xp, discipline.category, delta);
-    const nextDoneIds = { ...doneIds, [discipline.id]: !isDone };
+    const nextDoneIds = { ...doneIds, [discipline.id]: nowDone };
     setDoc(doc(db, 'users', uid), { xp: nextXp, doneIds: nextDoneIds }, { merge: true });
+
+    if (nowDone) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+
+      const prevLevel = levelFromXp(xp[discipline.category]);
+      const nextLevel = levelFromXp(nextXp[discipline.category]);
+      if (nextLevel > prevLevel) {
+        eventTokenRef.current += 1;
+        setLevelUpEvent({ category: discipline.category, token: eventTokenRef.current });
+      }
+
+      const prevRank = currentRank(totalLevel(xp));
+      const nextRank = currentRank(totalLevel(nextXp));
+      if (nextRank !== prevRank) {
+        eventTokenRef.current += 1;
+        setRankUpEvent({ rank: nextRank, token: eventTokenRef.current });
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      }
+    }
   };
 
   const addJournalEntry = (text: string) => {
@@ -104,8 +140,8 @@ export function GameStateProvider({ children }: { children: ReactNode }) {
   };
 
   const value = useMemo(
-    () => ({ xp, doneIds, toggleDiscipline, journalEntries, addJournalEntry }),
-    [xp, doneIds, journalEntries]
+    () => ({ xp, doneIds, toggleDiscipline, journalEntries, addJournalEntry, levelUpEvent, rankUpEvent }),
+    [xp, doneIds, journalEntries, levelUpEvent, rankUpEvent]
   );
 
   return <GameStateContext.Provider value={value}>{children}</GameStateContext.Provider>;
