@@ -2,43 +2,14 @@ import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet } from 'react-native';
 
 import { Text, View } from '@/components/Themed';
-import {
-  addXp,
-  createInitialXp,
-  currentRank,
-  levelFromXp,
-  totalLevel,
-  xpIntoLevel,
-  XP_PER_LEVEL,
-  type StatCategory,
-  type StatXp,
-} from '@/lib/stats';
-import { DISCIPLINES, TOTAL_DISCIPLINES, disciplinesByCategory, type Discipline } from '@/lib/disciplines';
-
-const CATEGORY_LABELS: Record<StatCategory, string> = {
-  body: 'Body',
-  mind: 'Mind',
-  spirit: 'Spirit',
-};
-
-// From the spec's visual design system — stat accent colors.
-const CATEGORY_COLORS: Record<StatCategory, string> = {
-  body: '#FF6E5A',
-  mind: '#5FD8FF',
-  spirit: '#C9A6FF',
-};
+import { CATEGORY_COLORS, CATEGORY_LABELS } from '@/constants/categories';
+import { useGameState } from '@/context/GameState';
+import { currentRank, levelFromXp, totalLevel, xpIntoLevel, XP_PER_LEVEL, type StatCategory } from '@/lib/stats';
+import { DISCIPLINES, TOTAL_DISCIPLINES, disciplinesByCategory } from '@/lib/disciplines';
 
 export default function TheChargeScreen() {
   const [activeCategory, setActiveCategory] = useState<StatCategory>('body');
-  const [xp, setXp] = useState<StatXp>(createInitialXp());
-  const [doneIds, setDoneIds] = useState<Record<string, boolean>>({});
-
-  const toggleDiscipline = (discipline: Discipline) => {
-    const isDone = !!doneIds[discipline.id];
-    const delta = isDone ? -discipline.points : discipline.points;
-    setXp((prev) => addXp(prev, discipline.category, delta));
-    setDoneIds((prev) => ({ ...prev, [discipline.id]: !isDone }));
-  };
+  const { xp, doneIds, toggleDiscipline } = useGameState();
 
   const overallLevel = totalLevel(xp);
   const rank = currentRank(overallLevel);
