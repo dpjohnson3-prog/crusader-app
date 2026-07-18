@@ -1,4 +1,4 @@
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 
 import { HudPanel } from '@/components/HudPanel';
 import { Colors, InterFonts, OrbitronFonts, PlexMonoFonts } from '@/constants/theme';
@@ -6,7 +6,7 @@ import { useGameState } from '@/context/GameState';
 import { currentRank, RANK_LADDER, totalLevel } from '@/lib/stats';
 
 export default function OrderScreen() {
-  const { xp } = useGameState();
+  const { xp, crusadeVowMode, setCrusadeVowMode } = useGameState();
   const overallLevel = totalLevel(xp);
   const rank = currentRank(overallLevel);
 
@@ -16,6 +16,23 @@ export default function OrderScreen() {
       <Text style={styles.subtitle}>
         Your overall level is Body + Mind + Spirit levels combined. You are Level {overallLevel} — {rank}.
       </Text>
+
+      <HudPanel style={styles.vowCard}>
+        <View style={styles.vowRow}>
+          <View style={styles.vowText}>
+            <Text style={styles.vowTitle}>VOW MODE</Text>
+            <Text style={styles.vowDescription}>
+              Only count a day toward your crusade streak if all 21 disciplines are completed — no partial credit.
+            </Text>
+          </View>
+          <Switch
+            value={crusadeVowMode}
+            onValueChange={setCrusadeVowMode}
+            trackColor={{ false: Colors.border, true: Colors.gold }}
+            thumbColor={Colors.ink}
+          />
+        </View>
+      </HudPanel>
 
       <HudPanel style={styles.ladder}>
         {RANK_LADDER.map((rung, index) => {
@@ -71,6 +88,31 @@ const styles = StyleSheet.create({
     lineHeight: 19,
     color: Colors.inkSoft,
     marginBottom: 20,
+  },
+  vowCard: {
+    padding: 16,
+    marginBottom: 16,
+  },
+  vowRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  vowText: {
+    flex: 1,
+  },
+  vowTitle: {
+    fontFamily: OrbitronFonts.medium,
+    fontSize: 13,
+    letterSpacing: 1,
+    color: Colors.ink,
+    marginBottom: 4,
+  },
+  vowDescription: {
+    fontFamily: InterFonts.regular,
+    fontSize: 12,
+    lineHeight: 17,
+    color: Colors.inkSoft,
   },
   ladder: {
     paddingHorizontal: 4,

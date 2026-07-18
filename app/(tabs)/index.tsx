@@ -1,17 +1,29 @@
 import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { CrusadeCompleteView } from '@/components/CrusadeCompleteView';
 import { HudPanel } from '@/components/HudPanel';
 import { StatProgressBar } from '@/components/StatProgressBar';
 import { CATEGORY_COLORS, CATEGORY_LABELS } from '@/constants/categories';
 import { Colors, InterFonts, OrbitronFonts, PlexMonoFonts } from '@/constants/theme';
 import { useGameState } from '@/context/GameState';
+import { CRUSADE_LENGTH_DAYS } from '@/lib/crusade';
 import { currentRank, levelFromXp, totalLevel, xpIntoLevel, XP_PER_LEVEL, type StatCategory } from '@/lib/stats';
 import { DISCIPLINES, TOTAL_DISCIPLINES, disciplinesByCategory } from '@/lib/disciplines';
 
 export default function TheChargeScreen() {
   const [activeCategory, setActiveCategory] = useState<StatCategory>('body');
-  const { xp, doneIds, toggleDiscipline, levelUpEvent } = useGameState();
+  const {
+    xp,
+    doneIds,
+    toggleDiscipline,
+    levelUpEvent,
+    crusadeDayNumber,
+    crusadeStreak,
+    crusadeDaysCompleted,
+    crusadeComplete,
+    beginNewCrusade,
+  } = useGameState();
 
   const overallLevel = totalLevel(xp);
   const rank = currentRank(overallLevel);
@@ -25,6 +37,19 @@ export default function TheChargeScreen() {
   const activeColor = CATEGORY_COLORS[activeCategory];
   const activeLevelUpToken = levelUpEvent?.category === activeCategory ? levelUpEvent.token : null;
 
+  if (crusadeComplete) {
+    return (
+      <View style={styles.container}>
+        <CrusadeCompleteView
+          daysCompleted={crusadeDaysCompleted}
+          finalStreak={crusadeStreak}
+          rank={rank}
+          onBeginNewCrusade={beginNewCrusade}
+        />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -32,6 +57,13 @@ export default function TheChargeScreen() {
         <Text style={styles.subtitle}>
           {rank} · Level {overallLevel} · {completedCount} of {TOTAL_DISCIPLINES} disciplines done today
         </Text>
+        <View style={styles.crusadeBadgeRow}>
+          <Text style={styles.crusadeBadge}>
+            DAY {crusadeDayNumber} / {CRUSADE_LENGTH_DAYS}
+          </Text>
+          <Text style={styles.crusadeBadgeDivider}>·</Text>
+          <Text style={styles.crusadeBadge}>{crusadeStreak} DAY STREAK</Text>
+        </View>
       </View>
 
       <View style={styles.categoryTabs}>
@@ -117,6 +149,23 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: Colors.inkSoft,
     marginTop: 4,
+  },
+  crusadeBadgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  crusadeBadge: {
+    fontFamily: PlexMonoFonts.medium,
+    fontSize: 11,
+    letterSpacing: 0.5,
+    color: Colors.gold,
+  },
+  crusadeBadgeDivider: {
+    fontFamily: PlexMonoFonts.medium,
+    fontSize: 11,
+    color: Colors.inkDim,
+    marginHorizontal: 8,
   },
   categoryTabs: {
     flexDirection: 'row',
