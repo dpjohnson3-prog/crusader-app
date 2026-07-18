@@ -4,11 +4,14 @@ import { HudPanel } from '@/components/HudPanel';
 import { Colors, InterFonts, OrbitronFonts, PlexMonoFonts } from '@/constants/theme';
 import { useGameState } from '@/context/GameState';
 import { currentRank, RANK_LADDER, totalLevel } from '@/lib/stats';
+import { VIRTUE_CARDS, VIRTUES, VIRTUE_LABELS, virtueCardsSeenThroughDay, type VirtueCard } from '@/lib/virtueCards';
 
 export default function OrderScreen() {
-  const { xp, crusadeVowMode, setCrusadeVowMode } = useGameState();
+  const { xp, crusadeVowMode, setCrusadeVowMode, crusadeDayNumber } = useGameState();
   const overallLevel = totalLevel(xp);
   const rank = currentRank(overallLevel);
+  const seenCards = virtueCardsSeenThroughDay(crusadeDayNumber);
+  const seenIds = new Set(seenCards.map((card) => card.id));
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
@@ -33,6 +36,32 @@ export default function OrderScreen() {
           />
         </View>
       </HudPanel>
+
+      <Text style={styles.sectionLabel}>VIRTUE CARDS SEEN THIS CRUSADE</Text>
+      {VIRTUES.map((virtue) => {
+        const cardsForVirtue: VirtueCard[] = VIRTUE_CARDS.filter((card) => card.virtue === virtue);
+        const seenCount = cardsForVirtue.filter((card) => seenIds.has(card.id)).length;
+        return (
+          <HudPanel key={virtue} style={styles.virtueCard}>
+            <View style={styles.virtueCardHeader}>
+              <Text style={styles.virtueCardTitle}>{VIRTUE_LABELS[virtue].toUpperCase()}</Text>
+              <Text style={styles.virtueCardCount}>
+                {seenCount} / {cardsForVirtue.length}
+              </Text>
+            </View>
+            <View style={styles.virtueChipRow}>
+              {cardsForVirtue.map((card) => {
+                const seen = seenIds.has(card.id);
+                return (
+                  <View key={card.id} style={[styles.virtueChip, seen && styles.virtueChipSeen]}>
+                    <Text style={[styles.virtueChipText, seen && styles.virtueChipTextSeen]}>{card.reference}</Text>
+                  </View>
+                );
+              })}
+            </View>
+          </HudPanel>
+        );
+      })}
 
       <HudPanel style={styles.ladder}>
         {RANK_LADDER.map((rung, index) => {
@@ -114,8 +143,61 @@ const styles = StyleSheet.create({
     lineHeight: 17,
     color: Colors.inkSoft,
   },
+  sectionLabel: {
+    fontFamily: PlexMonoFonts.semiBold,
+    fontSize: 12,
+    letterSpacing: 1,
+    color: Colors.inkDim,
+    marginBottom: 10,
+  },
+  virtueCard: {
+    padding: 14,
+    marginBottom: 10,
+  },
+  virtueCardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  virtueCardTitle: {
+    fontFamily: OrbitronFonts.medium,
+    fontSize: 12,
+    letterSpacing: 1,
+    color: Colors.gold,
+  },
+  virtueCardCount: {
+    fontFamily: PlexMonoFonts.medium,
+    fontSize: 11,
+    color: Colors.inkDim,
+  },
+  virtueChipRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  virtueChip: {
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: 6,
+    paddingVertical: 5,
+    paddingHorizontal: 9,
+  },
+  virtueChipSeen: {
+    borderColor: Colors.gold,
+    backgroundColor: 'rgba(232,194,92,0.12)',
+  },
+  virtueChipText: {
+    fontFamily: PlexMonoFonts.medium,
+    fontSize: 10,
+    color: Colors.inkDim,
+  },
+  virtueChipTextSeen: {
+    color: Colors.gold,
+  },
   ladder: {
     paddingHorizontal: 4,
+    marginTop: 6,
   },
   rung: {
     flexDirection: 'row',

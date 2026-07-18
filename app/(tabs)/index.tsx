@@ -1,15 +1,17 @@
 import { useMemo, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { CrusadeCompleteView } from '@/components/CrusadeCompleteView';
 import { HudPanel } from '@/components/HudPanel';
 import { StatProgressBar } from '@/components/StatProgressBar';
+import { VirtueCardPanel } from '@/components/VirtueCardPanel';
 import { CATEGORY_COLORS, CATEGORY_LABELS } from '@/constants/categories';
 import { Colors, InterFonts, OrbitronFonts, PlexMonoFonts } from '@/constants/theme';
 import { useGameState } from '@/context/GameState';
 import { CRUSADE_LENGTH_DAYS } from '@/lib/crusade';
 import { currentRank, levelFromXp, totalLevel, xpIntoLevel, XP_PER_LEVEL, type StatCategory } from '@/lib/stats';
 import { DISCIPLINES, TOTAL_DISCIPLINES, disciplinesByCategory } from '@/lib/disciplines';
+import { virtueCardForCrusadeDay } from '@/lib/virtueCards';
 
 export default function TheChargeScreen() {
   const [activeCategory, setActiveCategory] = useState<StatCategory>('body');
@@ -36,6 +38,7 @@ export default function TheChargeScreen() {
   const activeXpIntoLevel = xpIntoLevel(xp[activeCategory]);
   const activeColor = CATEGORY_COLORS[activeCategory];
   const activeLevelUpToken = levelUpEvent?.category === activeCategory ? levelUpEvent.token : null;
+  const virtueCard = virtueCardForCrusadeDay(crusadeDayNumber);
 
   if (crusadeComplete) {
     return (
@@ -51,7 +54,7 @@ export default function TheChargeScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={styles.header}>
         <Text style={styles.title}>THE CHARGE</Text>
         <Text style={styles.subtitle}>
@@ -65,6 +68,8 @@ export default function TheChargeScreen() {
           <Text style={styles.crusadeBadge}>{crusadeStreak} DAY STREAK</Text>
         </View>
       </View>
+
+      <VirtueCardPanel card={virtueCard} />
 
       <View style={styles.categoryTabs}>
         {(['body', 'mind', 'spirit'] as StatCategory[]).map((category) => {
@@ -124,16 +129,19 @@ export default function TheChargeScreen() {
           );
         })}
       </View>
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: Colors.bg,
+  },
+  content: {
     paddingTop: 60,
     paddingHorizontal: 20,
-    backgroundColor: Colors.bg,
+    paddingBottom: 40,
   },
   header: {
     marginBottom: 16,
