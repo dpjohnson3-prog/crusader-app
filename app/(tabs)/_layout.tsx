@@ -30,6 +30,7 @@ export default function TabLayout() {
         name="index"
         options={{
           title: 'The Charge',
+          tabBarLabel: 'Charge',
           tabBarIcon: ({ color }) => (
             <SymbolView
               name={{
