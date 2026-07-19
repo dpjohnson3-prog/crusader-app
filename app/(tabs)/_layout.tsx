@@ -64,6 +64,7 @@ export default function TabLayout() {
         name="progress"
         options={{
           title: 'Record of Deeds',
+          tabBarLabel: 'Progress',
           tabBarIcon: ({ color }) => (
             <SymbolView
               name={{
@@ -98,6 +99,7 @@ export default function TabLayout() {
         name="armory"
         options={{
           title: 'The Armory',
+          tabBarLabel: 'Armory',
           tabBarIcon: ({ color }) => (
             <SymbolView
               name={{
