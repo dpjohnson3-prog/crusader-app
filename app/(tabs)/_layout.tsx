@@ -1,3 +1,4 @@
+import { MaterialIcons } from '@expo/vector-icons';
 import { SymbolView } from 'expo-symbols';
 import { Redirect, Tabs } from 'expo-router';
 import { useEffect, useState } from 'react';
@@ -97,11 +98,8 @@ export default function TabLayout() {
             tabBarLabel: 'Charge',
             tabBarIcon: ({ color }) => (
               <SymbolView
-                name={{
-                  ios: 'checklist',
-                  android: 'checklist',
-                  web: 'checklist',
-                }}
+                name="checklist"
+                fallback={<MaterialIcons name="checklist" size={28} color={color} />}
                 tintColor={color}
                 size={28}
               />
@@ -114,11 +112,8 @@ export default function TabLayout() {
             title: 'Chronicle',
             tabBarIcon: ({ color }) => (
               <SymbolView
-                name={{
-                  ios: 'book.fill',
-                  android: 'book',
-                  web: 'book',
-                }}
+                name="book.fill"
+                fallback={<MaterialIcons name="book" size={28} color={color} />}
                 tintColor={color}
                 size={28}
               />
@@ -132,11 +127,8 @@ export default function TabLayout() {
             tabBarLabel: 'Progress',
             tabBarIcon: ({ color }) => (
               <SymbolView
-                name={{
-                  ios: 'chart.bar.fill',
-                  android: 'bar_chart',
-                  web: 'bar_chart',
-                }}
+                name="chart.bar.fill"
+                fallback={<MaterialIcons name="bar-chart" size={28} color={color} />}
                 tintColor={color}
                 size={28}
               />
@@ -149,11 +141,8 @@ export default function TabLayout() {
             title: 'The Order',
             tabBarIcon: ({ color }) => (
               <SymbolView
-                name={{
-                  ios: 'crown.fill',
-                  android: 'military_tech',
-                  web: 'military_tech',
-                }}
+                name="crown.fill"
+                fallback={<MaterialIcons name="military-tech" size={28} color={color} />}
                 tintColor={color}
                 size={28}
               />
@@ -167,11 +156,8 @@ export default function TabLayout() {
             tabBarLabel: 'Armory',
             tabBarIcon: ({ color }) => (
               <SymbolView
-                name={{
-                  ios: 'shield.fill',
-                  android: 'shield',
-                  web: 'shield',
-                }}
+                name="shield.fill"
+                fallback={<MaterialIcons name="shield" size={28} color={color} />}
                 tintColor={color}
                 size={28}
               />
