@@ -2,7 +2,7 @@ import * as Google from 'expo-auth-session/providers/google';
 import { Redirect } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { useEffect, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { HudButton } from '@/components/HudButton';
 import { HudPanel } from '@/components/HudPanel';
@@ -13,11 +13,21 @@ import { Colors, InterFonts, OrbitronFonts } from '@/constants/theme';
 WebBrowser.maybeCompleteAuthSession();
 
 const googleWebClientId = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID;
-// expo-auth-session throws synchronously (during render) if webClientId is
-// undefined, even if the request is never used. Fall back to a placeholder
-// so the hook doesn't crash the screen when Google sign-in isn't configured
-// yet — the button below stays disabled in that case, so it's never used.
+const googleIosClientId = process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID;
+// expo-auth-session throws synchronously (during render) if the client ID
+// for the current platform is undefined, even if the request is never used.
+// Which property it checks depends on Platform.OS — iOS requires
+// iosClientId specifically, regardless of webClientId being set — so both
+// need a placeholder fallback, or the login screen crashes outright on that
+// platform. The button below stays disabled unless the real ID for the
+// current platform is set, so a placeholder is never actually used.
 const googleWebClientIdOrPlaceholder = googleWebClientId || 'unconfigured';
+const googleIosClientIdOrPlaceholder = googleIosClientId || 'unconfigured';
+
+// Which client ID expo-auth-session actually reads is platform-dependent
+// (see the Platform.select in its useAuthRequest) — mirror that here so the
+// button/hint reflect whether *this* platform is really ready, not just web.
+const isGoogleSignInConfigured = Platform.OS === 'ios' ? !!googleIosClientId : !!googleWebClientId;
 
 export default function LoginScreen() {
   const { user, isFirebaseConfigured, signInWithEmail, signUpWithEmail, signInWithGoogleIdToken } = useAuth();
@@ -29,6 +39,7 @@ export default function LoginScreen() {
 
   const [googleRequest, googleResponse, promptGoogleSignIn] = Google.useIdTokenAuthRequest({
     webClientId: googleWebClientIdOrPlaceholder,
+    iosClientId: googleIosClientIdOrPlaceholder,
   });
 
   useEffect(() => {
@@ -112,11 +123,15 @@ export default function LoginScreen() {
       <HudButton
         title="Continue with Google"
         onPress={() => promptGoogleSignIn()}
-        disabled={!googleRequest || !googleWebClientId || submitting}
+        disabled={!googleRequest || !isGoogleSignInConfigured || submitting}
         variant="secondary"
       />
-      {!googleWebClientId && (
-        <Text style={styles.googleHint}>Set EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID to enable Google sign-in.</Text>
+      {!isGoogleSignInConfigured && (
+        <Text style={styles.googleHint}>
+          {Platform.OS === 'ios'
+            ? 'Set EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID to enable Google sign-in.'
+            : 'Set EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID to enable Google sign-in.'}
+        </Text>
       )}
 
       <Pressable onPress={() => setMode(mode === 'signIn' ? 'signUp' : 'signIn')} style={styles.switchModeButton}>
