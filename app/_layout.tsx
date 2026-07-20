@@ -82,7 +82,12 @@ function RootLayoutNav() {
       <GameStateProvider>
         <Stack>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="login" options={{ headerShown: false }} />
+          {/* animation: 'none' is a diagnostic for the iOS "keyboard opens then
+              immediately closes" bug on this screen — it removes the push
+              transition that's in flight right as this screen is reached via
+              the tabs' Redirect, in case a tap racing that transition is what
+              causes the keyboard to lose focus right after gaining it. */}
+          <Stack.Screen name="login" options={{ headerShown: false, animation: 'none' }} />
         </Stack>
         <RankUpOverlay />
       </GameStateProvider>

@@ -97,12 +97,18 @@ export default function LoginScreen() {
 
       {error && <Text style={styles.error}>{error}</Text>}
 
+      {/* Explicit textContentType/autoComplete so iOS can correctly identify
+          this as a username+password pair up front, instead of guessing —
+          a documented cause of the password-autofill/QuickType heuristics
+          interfering with focus on freshly-mounted login-shaped forms. */}
       <HudTextInput
         value={email}
         onChangeText={setEmail}
         placeholder="Email"
         autoCapitalize="none"
         keyboardType="email-address"
+        textContentType="username"
+        autoComplete="username"
         style={styles.inputSpacing}
       />
       <HudTextInput
@@ -110,6 +116,8 @@ export default function LoginScreen() {
         onChangeText={setPassword}
         placeholder="Password"
         secureTextEntry
+        textContentType={mode === 'signUp' ? 'newPassword' : 'password'}
+        autoComplete={mode === 'signUp' ? 'new-password' : 'current-password'}
         style={styles.inputSpacing}
       />
 
