@@ -3,6 +3,8 @@ import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
+import { StyleSheet } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import 'react-native-reanimated';
 
 import { RankUpOverlay } from '@/components/RankUpOverlay';
@@ -46,14 +48,17 @@ export default function RootLayout() {
     if (error) throw error;
   }, [error]);
 
-  if (!loaded) {
-    return null;
-  }
-
+  // Required Expo Router setup (docs.expo.dev/guides/gestures) — mounted
+  // unconditionally, before the fonts-loaded check, so it's in place for the
+  // very first render rather than appearing partway through.
   return (
-    <AuthProvider>
-      <RootLayoutNav />
-    </AuthProvider>
+    <GestureHandlerRootView style={styles.gestureRoot}>
+      {loaded && (
+        <AuthProvider>
+          <RootLayoutNav />
+        </AuthProvider>
+      )}
+    </GestureHandlerRootView>
   );
 }
 
@@ -84,3 +89,9 @@ function RootLayoutNav() {
     </ThemeProvider>
   );
 }
+
+const styles = StyleSheet.create({
+  gestureRoot: {
+    flex: 1,
+  },
+});
